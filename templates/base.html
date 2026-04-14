@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <title>{% block title %}BEAUTY FOR YOU{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E✨%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ШАПКА -->
+<header>
+    <!-- Обёртка для таблиц -->
+<div class="table-responsive">
+    <table class="admin-table">
+        <!-- содержимое таблицы -->
+    </table>
+</div>
+    <div class="header-main">
+        <div class="container">
+            <nav class="navbar">
+                <a href="{{ url_for('index') }}" class="logo-wrapper">
+                    <div class="logo-badge">
+                        <span class="logo-text">BEAUTY FOR YOU</span>
+                    </div>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Главная</a>
+                    <a href="{{ url_for('catalog') }}" class="nav-link {% if request.endpoint == 'catalog' %}active{% endif %}">Каталог</a>
+                    <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">О нас</a>
+                    <a href="{{ url_for('contacts') }}" class="nav-link {% if request.endpoint == 'contacts' %}active{% endif %}">Контакты</a>
+                </div>
+                
+<div class="user-actions">
+    {% if current_user.is_authenticated %}
+        <div class="user-profile-inline">
+            {% if current_user.is_admin %}
+                <a href="{{ url_for('admin') }}" class="btn-icon-only" title="Админка">⚙️</a>
+            {% endif %}
+            <span class="user-greeting-inline">{{ current_user.username }}</span>
+            <a href="{{ url_for('logout') }}" class="btn-logout-inline" title="Выйти">✕</a>
+        </div>
+    {% else %}
+        <a href="{{ url_for('login') }}" class="btn-outline">Вход</a>
+        <a href="{{ url_for('register') }}" class="btn-primary">Регистрация</a>
+    {% endif %}
+    
+    <!-- Корзина -->
+    <a href="{{ url_for('cart') }}" class="cart-btn">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-count" id="cart-count">
+            {% if current_user.is_authenticated %}
+                {{ current_user.get_cart_total() or 0 }}
+            {% else %}
+                {% set c = session.get('cart', {}) %}
+                {{ c.values()|list|sum or 0 }}
+            {% endif %}
+        </span>
+    </a>
+</div>
+            </nav>
+        </div>
+    </div>
+    <div class="header-decoration"></div>
+</header>
+
+<!-- ========================================
+     ОСНОВНОЙ КОНТЕНТ
+     ======================================== -->
+<main>
+    <!-- Уведомления -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ========================================
+     ПОДВАЛ (как в макете)
+     ======================================== -->
+<footer id="contacts">
+    <div class="footer-container">
+        <div class="footer-content">
+            <!-- Логотип -->
+            <div class="footer-logo">
+                <h4>BEAUTY<br>FOR YOU</h4>
+                <p class="copyright">© 2026 Интернет-магазин<br>«Beauty for you». Все права<br>защищены.</p>
+            </div>
+            
+            <!-- Компания -->
+            <div class="footer-column">
+                <h5>Компания</h5>
+                <a href="{{ url_for('about') }}">О нас</a>
+                <a href="{{ url_for('contacts') }}">Контакты</a>
+            </div>
+            
+            <!-- Информация -->
+            <div class="footer-column">
+                <h5>Информация</h5>
+                <a href="#">Личный кабинет</a>
+                <a href="#">Доставка</a>
+                <a href="#">Оплата</a>
+            </div>
+            
+            <!-- Мы в сети -->
+            <div class="footer-column">
+                <h5>Мы в сети</h5>
+                <div class="social-links">
+                    <a href="#" class="social-link">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M15.073 2H8.937C5.009 2 2 5.009 2 8.937v6.126C2 18.991 5.009 22 8.937 22h6.126C18.991 22 22 18.991 22 15.063V8.937C22 5.009 18.991 2 15.073 2zM17.82 16.25c-.545.744-1.134 1.386-2.097 1.386h-.893c-1.417 0-2.286-.753-2.696-1.623 0 0-.326.794-1.567 1.505-1.126.648-2.156.788-3.015.738-.794-.046-1.496-.25-1.496-.25l.327-1.395c0 .001.694.296 1.595.338.795.038 1.533-.084 2.21-.461.734-.411 1.126-.87 1.126-.87V12.26h-2.53v3.562H7.02V9.023h5.657v1.165s.338-.461 1.003-.87c.665-.41 1.417-.523 1.417-.523h2.72v1.28s-1.018.04-1.85.377c-.833.338-1.28.909-1.28.909v2.666s.153.361.569.569c.415.208.832.208.832.208h1.734z"/>
+                        </svg>
+                        <span>ВКонтакте</span>
+                    </a>
+                    <a href="https://t.me/KORNEEV" class="social-link">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                        </svg>
+                        <span>Telegram</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Контакты -->
+            <div class="footer-column">
+                <h5>Контакты</h5>
+                <div class="contact-item">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    <span>+7 (964) 872-35-27</span>
+                </div>
+                <div class="contact-item">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <span>KORNEEVAV926@GMAIL.COM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+// Добавление в корзину — ИСПРАВЛЕННАЯ ВЕРСИЯ
+function addToCart(productId, redirectToCart) {
+    // ← ← ← ГЛАВНОЕ: если не передан флаг, НЕ перенаправляем
+    if (redirectToCart !== true) {
+        redirectToCart = false;
+    }
+    
+    // Получаем количество — ищем по классу, т.к. в product.html нет id
+    var qtyInput = document.querySelector('.qty-value');
+    var quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+    
+    // Кнопка может быть button или div
+    var btn = document.querySelector('.btn-add-cart');
+    if (!btn) return;
+    
+    // Сохраняем оригинальный текст
+    var originalText = btn.innerHTML;
+    
+    // Визуальная обратная связь (работает и для div)
+    btn.innerHTML = '⏳ Добавление...';
+    btn.style.opacity = '0.7';
+    if (btn.tagName === 'BUTTON') {
+        btn.disabled = true;
+    }
+    btn.style.pointerEvents = 'none';
+    
+    fetch('/add_to_cart/' + productId, {
+        method: 'POST',
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: new URLSearchParams({'quantity': quantity})
+    })
+    .then(function(response) {
+        if (response.status === 404) {
+            window.location.reload();
+            return null;
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data && data.success) {
+            // Обновляем счётчик корзины
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+            
+            // Показываем уведомление
+            if (typeof window.showFlashMessage === 'function') {
+                window.showFlashMessage('✓ Товар добавлен в корзину', 'success');
+            }
+            
+            // ← ← ← Перенаправляем ТОЛЬКО если явно передано true
+            if (redirectToCart === true) {
+                setTimeout(function() {
+                    window.location.href = '/cart';
+                }, 1000);
+            }
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        // Не перезагружаем страницу при ошибке — даём пользователю попробовать ещё
+    })
+    .finally(function() {
+        // Возвращаем кнопку в исходное состояние
+        btn.innerHTML = originalText;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+        if (btn.tagName === 'BUTTON') {
+            btn.disabled = false;
+        }
+    });
+}
+
+// Обновление счётчика корзины
+window.updateCartCount = function() {
+    fetch('/api/cart_count')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var el = document.getElementById('cart-count');
+            if (el) { 
+                el.textContent = d.count; 
+                el.classList.add('update');
+                setTimeout(function() { el.classList.remove('update'); }, 300);
+            }
+        })
+        .catch(function(err) { console.error('Ошибка обновления корзины:', err); });
+};
+
+// Уведомления
+window.showFlashMessage = function(msg, type) {
+    var f = document.createElement('div');
+    f.className = 'flash-message flash-' + type;
+    f.innerHTML = msg + ' <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;margin-left:10px;">✕</button>';
+    f.style.cssText = 'position:fixed;top:80px;right:20px;background:' + (type==='success'?'#d4edda':'#f8d7da') + ';color:' + (type==='success'?'#155724':'#721c24') + ';padding:15px 20px;border-radius:5px;z-index:9999;display:flex;justify-content:space-between;align-items:center;animation:slideIn 0.3s;';
+    document.body.appendChild(f);
+    setTimeout(function() { f.style.opacity='0'; setTimeout(function(){f.remove();},300); }, 2500);
+};
+</script>
+</body>
+</html>

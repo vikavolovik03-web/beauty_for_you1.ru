@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}О нас - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+
+<section class="about-story">
+    <div class="container">
+        <div class="story-grid">
+            <div class="story-image">
+    <img src="{{ url_for('static', filename='images/about/story.jpg') }}" alt="Наша история">
+</div>
+            <div class="story-text">
+                <h2 class="section-heading">Наша история</h2>
+                <p class="story-paragraph">
+                    <strong>BEAUTY FOR YOU</strong> — это не просто интернет-магазин косметики. 
+                    Это место, где рождаются идеи красоты и заботы о себе.
+                </p>
+                <p class="story-paragraph">
+                    Мы начинали с небольшой коллекции уходовых средств для лица, 
+                    а сегодня представляем широкий ассортимент профессиональной косметики 
+                    для лица, тела и волос от ведущих мировых брендов.
+                </p>
+                <p class="story-paragraph">
+                    Наша миссия — помочь каждому найти свои идеальные средства ухода, 
+                    которые подчеркнут природную красоту и подарят уверенность в себе.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-values">
+    <div class="container">
+        <h2 class="section-title-centered">
+            <span class="title-icon"></span>
+            Наши ценности
+            <span class="title-icon"></span>
+        </h2>
+        
+        <div class="values-grid">
+            <div class="value-card">
+                <h3>Натуральность</h3>
+                <p>Мы тщательно отбираем продукцию с безопасным составом и натуральными компонентами</p>
+            </div>
+            
+            <div class="value-card">
+                <h3>Качество</h3>
+                <p>Только сертифицированные товары от официальных поставщиков с гарантией подлинности</p>
+            </div>
+            
+            <div class="value-card">
+                <h3>Забота</h3>
+                <p>Индивидуальный подход к каждому клиенту и профессиональные консультации по подбору средств</p>
+            </div>
+            
+            <div class="value-card">
+                <h3>Комфорт</h3>
+                <p>Быстрая доставка по всей России и удобный сервис для приятных покупок</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Товаров в каталоге</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Брендов</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">10K+</span>
+                <span class="stat-label">Довольных клиентов</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Поддержка</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="about-cta">
+    <div class="container">
+        <h2>Готовы начать путь к идеальной коже?</h2>
+        <p>Посетите наш каталог и найдите средства, которые подойдут именно вам</p>
+        <a href="{{ url_for('catalog') }}" class="btn-catalog-large">
+            Перейти в каталог
+            <span class="catalog-arrow">→</span>
+        </a>
+    </div>
+</section>
+{% endblock %}

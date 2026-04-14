@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Контакты - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+
+<!-- Секция формы обратной связи -->
+<section class="contacts-form-section">
+    <div class="container">
+        <div class="form-wrapper-full">
+            <h2 class="form-title">Напишите нам</h2>
+            
+            <!-- Сообщение об успешной отправке -->
+            <div id="success-message" class="success-message">
+                <div class="success-icon">✓</div>
+                <div>
+                    <h3>Сообщение отправлено!</h3>
+                    <p>Ответим в течение 24 часов</p>
+                </div>
+            </div>
+            
+            <!-- Сообщение об ошибке -->
+            <div id="error-message" class="error-message">
+                <div class="error-icon">✕</div>
+                <div>
+                    <h3>Ошибка отправки</h3>
+                    <p>Попробуйте ещё раз</p>
+                </div>
+            </div>
+            
+            <form class="contact-form" id="contact-form" method="POST" action="{{ url_for('contacts') }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Ваше имя *</label>
+                        <input type="text" id="name" name="name" required placeholder="Иван Иванов">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact">Email или телефон *</label>
+                        <input type="text" id="contact" name="contact" required placeholder="example@mail.ru или +7 (999) 000-00-00">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Тема сообщения</label>
+                    <select id="subject" name="subject">
+                        <option value="question">Вопрос о товаре</option>
+                        <option value="order">Заказ</option>
+                        <option value="delivery">Доставка</option>
+                        <option value="cooperation">Сотрудничество</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Сообщение *</label>
+                    <textarea id="message" name="message" required placeholder="Ваш вопрос или предложение..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    Отправить сообщение
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- CTA секция -->
+<section class="contacts-cta">
+    <div class="container">
+        <h2>Остались вопросы?</h2>
+        <p>Позвоните нам прямо сейчас или напишите в мессенджеры</p>
+        <a href="{{ url_for('catalog') }}" class="btn-catalog-large">
+            Перейти в каталог
+            <span class="catalog-arrow">→</span>
+        </a>
+    </div>
+</section>
+
+<script>
+// Скрываем сообщения при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('success-message').style.display = 'none';
+    document.getElementById('error-message').style.display = 'none';
+});
+
+// Обработка формы обратной связи
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var form = this;
+    var formData = new FormData(form);
+    var submitBtn = form.querySelector('.btn-submit');
+    var originalText = submitBtn.innerHTML;
+    
+    // Скрываем предыдущие сообщения
+    document.getElementById('success-message').style.display = 'none';
+    document.getElementById('error-message').style.display = 'none';
+    
+    // Блокируем кнопку
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Отправка...';
+    
+    // Отправляем форму
+    fetch('{{ url_for("contacts") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            // Показываем сообщение об успехе
+            var successMsg = document.getElementById('success-message');
+            successMsg.style.display = 'flex';
+            successMsg.classList.add('show');
+            
+            // Очищаем форму
+            form.reset();
+            
+            // Скрываем сообщение через 5 секунд
+            setTimeout(function() {
+                successMsg.style.display = 'none';
+                successMsg.classList.remove('show');
+            }, 5000);
+        } else {
+            // Показываем сообщение об ошибке
+            var errorMsg = document.getElementById('error-message');
+            errorMsg.style.display = 'flex';
+            errorMsg.classList.add('show');
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        var errorMsg = document.getElementById('error-message');
+        errorMsg.style.display = 'flex';
+        errorMsg.classList.add('show');
+    })
+    .finally(function() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+</script>
+{% endblock %}

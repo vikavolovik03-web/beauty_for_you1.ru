@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+<section class="product-detail">
+    <div class="container">
+        
+        <!-- ВЕРХНЯЯ ЧАСТЬ: Фото + Информация + Описание -->
+        <div class="product-main-section">
+            
+                <!-- Левая часть: ГАЛЕРЕЯ ФОТО -->
+            <div class="product-gallery-section">
+                <div class="product-main-image-wrapper">
+                    
+                    <!-- Стрелки навигации (показываются только если >1 фото) -->
+                    {% set all_images = [product.image] + (product.images_list_parsed() if product.images_list else []) %}
+                    {% if all_images|length > 1 %}
+                    <button type="button" class="gallery-nav prev" onclick="changeImage(-1)">❮</button>
+                    <button type="button" class="gallery-nav next" onclick="changeImage(1)">❯</button>
+                    {% endif %}
+                    
+                    <!-- Главное фото -->
+                    <div class="product-main-image">
+                        <img id="main-image" 
+                             src="{{ url_for('static', filename='images/products/' + product.image) }}" 
+                             alt="{{ product.name }}">
+                    </div>
+                </div>
+            </div>
+            
+            
+            <!-- Правая часть: Информация + Описание -->
+            <div class="product-info-section">
+                <span class="product-brand-large">{{ product.brand }}</span>
+                <h1 class="product-title">{{ product.name }}</h1>
+                <span class="price-current">{{ product.price }} ₽</span>
+                
+                <!-- Счётчик + Кнопка -->
+                <div class="product-actions-block">
+                    <div class="quantity-selector">
+                        <button type="button" class="qty-btn" onclick="decreaseQuantity()">−</button>
+                        <input type="text" class="qty-value" value="1" readonly>
+                        <button type="button" class="qty-btn" onclick="increaseQuantity()">+</button>
+                    </div>
+                    
+                    <button type="button" class="btn-add-cart" onclick="addToCart({{ product.id }})">
+                        🛒 В корзину
+                    </button>
+                </div>
+                
+                <!-- Описание -->
+                <div class="product-description-block">
+                    <h3>Описание:</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- НИЖНЯЯ ЧАСТЬ: Состав и Способ применения -->
+        <div class="product-details-bottom">
+            <div class="product-composition-usage-grid">
+               <!-- Состав (сворачиваемый) -->
+                <div class="product-detail-block">
+                    <h3>Состав:</h3>
+                    <div class="product-composition collapsible-content" id="composition-content">
+                        {{ product.composition }}
+                    </div>
+                    <button class="btn-expand" onclick="toggleComposition()" id="composition-btn">
+                        <span>Читать далее</span>
+                        <span class="expand-icon">▼</span>
+                    </button>
+                </div>
+                <div class="product-detail-block">
+                    <h3>Способ применения:</h3>
+                    <div class="product-usage">
+                        {{ product.usage }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Кнопка назад -->
+        <div class="back-to-catalog-wrapper">
+            <a href="{{ url_for('catalog') }}" class="btn-back-to-catalog">
+                ← Вернуться к каталогу
+            </a>
+        </div>
+        
+    </div>
+</section>
+
+<script>
+    
+// === ГАЛЕРЕЯ ФОТО ===
+{% set all_images = [product.image] + (product.images_list_parsed() if product.images_list else []) %}
+const images = [
+    "{{ product.image }}",
+    {% for img in product.images_list_parsed() if product.images_list %}
+    "{{ img }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+let currentImageIndex = 0;
+
+function showImage(index) {
+    if (index < 0 || index >= images.length) return;
+    
+    currentImageIndex = index;
+    document.getElementById('main-image').src = '{{ url_for("static", filename="images/products/") }}' + images[index];
+    
+    // Показываем/скрываем стрелки
+    updateArrows();
+}
+
+function changeImage(direction) {
+    let newIndex = currentImageIndex + direction;
+    
+    // Зацикливаем галерею
+    if (newIndex < 0) newIndex = images.length - 1;
+    if (newIndex >= images.length) newIndex = 0;
+    
+    showImage(newIndex);
+}
+
+function updateArrows() {
+    const prevBtn = document.querySelector('.gallery-nav.prev');
+    const nextBtn = document.querySelector('.gallery-nav.next');
+    
+    if (prevBtn && nextBtn) {
+        // Показываем стрелки только если больше 1 фото
+        if (images.length > 1) {
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
+        } else {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+    }
+}    
+// Счётчик количества
+function decreaseQuantity() {
+    var input = document.querySelector('.qty-value');
+    var value = parseInt(input.value);
+    if (value > 1) {
+        input.value = value - 1;
+    }
+}
+
+function increaseQuantity() {
+    var input = document.querySelector('.qty-value');
+    var value = parseInt(input.value);
+    input.value = value + 1;
+}
+
+// ← ← ← ДОБАВЛЕНИЕ В КОРЗИНУ С event.preventDefault()
+function addToCart(productId) {
+    // Останавливаем все события
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    var quantity = document.querySelector('.qty-value').value;
+    
+    fetch('/add_to_cart/' + productId, {
+        method: 'POST',
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: new URLSearchParams({'quantity': quantity})
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+            alert('✓ Товар добавлен в корзину!');
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+    });
+    
+    return false;
+}
+
+// Сворачивание/разворачивание состава
+function toggleComposition() {
+    var content = document.getElementById('composition-content');
+    var btn = document.getElementById('composition-btn');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        content.classList.add('expanded');
+        btn.querySelector('.expand-text').textContent = 'Свернуть';
+        btn.classList.add('expanded');
+    } else {
+        content.classList.remove('expanded');
+        content.classList.add('collapsed');
+        btn.querySelector('.expand-text').textContent = 'Читать далее';
+        btn.classList.remove('expanded');
+    }
+}
+</script>
+{% endblock %}

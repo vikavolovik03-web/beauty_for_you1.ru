@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Корзина - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+
+<!-- Содержимое корзины -->
+<section class="cart-content">
+    <div class="container">
+        {% if cart_items and cart_items|length > 0 %}
+        
+        <!-- Заголовок "Ваши товары" - ПО ЦЕНТРУ -->
+        <div class="cart-items-title">
+            <h2>Ваши товары</h2>
+        </div>
+        
+        <!-- Товары - ПО ЦЕНТРУ -->
+        <div class="cart-items-wrapper">
+            {% for item in cart_items %}
+            <div class="cart-item" data-product-id="{{ item.product_id }}">
+                <div class="item-product">
+                    <div class="item-image">
+                        {% if item.product.image and item.product.image != 'default.jpg' %}
+                            <img src="{{ url_for('static', filename='images/products/' + item.product.image) }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="image-placeholder">{{ item.product.brand[0] if item.product.brand else 'P' }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="item-info">
+                        <span class="item-brand">{{ item.product.brand }}</span>
+                        <h3 class="item-name">{{ item.product.name }}</h3>
+                    </div>
+                </div>
+                
+                <div class="item-price">
+                    <span class="price-current">{{ item.product.price }} ₽</span>
+                </div>
+                
+                <div class="item-quantity">
+                    <button type="button" class="qty-btn" onclick="updateCartQuantity({{ item.product_id }}, -1)">−</button>
+                    <input type="number" class="qty-input" value="{{ item.quantity }}" min="1" readonly>
+                    <button type="button" class="qty-btn" onclick="updateCartQuantity({{ item.product_id }}, 1)">+</button>
+                </div>
+                
+                <div class="item-total">
+                    <span class="total-amount">{{ item.product.price * item.quantity }} ₽</span>
+                </div>
+                
+                <div class="item-action">
+                    <button type="button" class="remove-btn" onclick="removeFromCart({{ item.product_id }})">✕</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Итог заказа - СПРАВА -->
+        <div class="cart-summary-wrapper">
+            <div class="cart-summary">
+                <h2 class="summary-title">
+                    Итог заказа
+                </h2>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Подытог:</span>
+                    <span class="summary-value" id="subtotal">{{ subtotal }} ₽</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Доставка:</span>
+                    <span class="summary-value delivery">Бесплатно</span>
+                </div>
+                
+                <div class="summary-divider"></div>
+                
+                <div class="summary-row total">
+                    <span class="summary-label">Итого:</span>
+                    <span class="summary-value" id="total">{{ total }} ₽</span>
+                </div>
+                
+               <!-- Кнопка оформления заказа -->
+<a href="{{ url_for('checkout') }}" class="btn-checkout">
+    Оформить заказ
+</a>
+                
+                <div class="summary-continue">
+                    <a href="{{ url_for('catalog') }}" class="btn-continue">
+                        <span class="continue-arrow">←</span>
+                        Продолжить покупки
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <!-- Корзина пуста -->
+        <div class="cart-empty">
+            <h2 class="empty-title">Ваша корзина пуста</h2>
+            <p class="empty-text">Добавьте товары из каталога, чтобы оформить заказ</p>
+            <a href="{{ url_for('catalog') }}" class="btn-catalog-empty">
+                Перейти в каталог
+                <span class="catalog-arrow">→</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+<script>
+// Удаление товара из корзины
+function removeFromCart(productId) {
+    if (!productId) {
+        alert('Ошибка: ID товара не указан');
+        return;
+    }
+    
+    fetch('/remove_from_cart/' + productId, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка при удалении товара');
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при удалении товара');
+    });
+}
+
+// Обновление количества
+function updateQuantity(productId, action) {
+    if (!productId) {
+        alert('Ошибка: ID товара не указан');
+        return;
+    }
+    
+    fetch('/update_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'product_id=' + productId + '&action=' + action
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка при обновлении количества');
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+// Обновление счётчика корзины
+function updateCartCount() {
+    fetch('/api/cart_count')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            var cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = data.count;
+                cartCount.classList.add('update');
+                setTimeout(function() {
+                    cartCount.classList.remove('update');
+                }, 300);
+            }
+        });
+}
+</script>
+{% endblock %}

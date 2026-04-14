@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %}{{ category_title }}BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+<section class="category-page">
+    <div class="container">
+        <!-- Заголовок категории -->
+        <div class="category-header">
+            <h1 class="category-name-badge">{{ category_title }}</h1>
+        </div>
+        
+        <!-- Фильтры -->
+        <div class="catalog-filters-simple">
+            <form class="filters-form" method="GET">
+                <div class="filter-select">
+                    <label>Сортировка:</label>
+                    <select name="sort" onchange="this.form.submit()">
+                        <option value="default" {% if current_sort == 'default' %}selected{% endif %}>По умолчанию</option>
+                        <option value="price-asc" {% if current_sort == 'price-asc' %}selected{% endif %}>Цена: сначала дешёвые</option>
+                        <option value="price-desc" {% if current_sort == 'price-desc' %}selected{% endif %}>Цена: сначала дорогие</option>
+                        <option value="brand" {% if current_sort == 'brand' %}selected{% endif %}>По бренду</option>
+                    </select>
+                </div>
+                
+                <div class="filter-select">
+                    <label>Бренд:</label>
+                    <select name="brand" onchange="this.form.submit()">
+                        <option value="all" {% if current_brand == 'all' %}selected{% endif %}>Все бренды</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand }}" {% if current_brand == brand %}selected{% endif %}>{{ brand }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+            
+            <span class="products-count-badge">{{ products|length }} товаров</span>
+        </div>
+        
+<!-- ... фильтры ... -->
+
+<!-- ✅ ДОБАВЬТЕ ЭТУ ОБЁРТКУ: -->
+<div class="products-grid-makeup">
+    
+    {% for product in products %}
+    <div class="product-card-makeup">
+        <!-- Ссылка на товар -->
+        <a href="{{ url_for('product', product_id=product.id) }}" class="product-card-link">
+            <div class="product-image-wrapper">
+                {% if product.image and product.image != 'default.jpg' %}
+                    <img src="{{ url_for('static', filename='images/products/' + product.image) }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="image-placeholder">{{ product.brand[0] if product.brand else 'P' }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="product-info-makeup">
+                <span class="product-brand-makeup">{{ product.brand }}</span>
+                <h3 class="product-name-makeup">{{ product.name }}</h3>
+                <div class="product-price-makeup">{{ product.price }} ₽</div>
+            </div>
+        </a>
+        
+        <!-- Блок действий: счётчик + кнопка -->
+        <div class="product-actions-makeup raise-up">
+            <div class="quantity-control" id="qty-control-{{ product.id }}">
+                <button type="button" class="qty-btn" onclick="updateCartQuantity({{ product.id }}, -1)">−</button>
+                <span class="qty-value" id="qty-value-{{ product.id }}">{{ product.in_cart_qty or 1 }}</span>
+                <button type="button" class="qty-btn" onclick="updateCartQuantity({{ product.id }}, 1)">+</button>
+            </div>
+            
+            <button type="button" class="btn-add-cart" 
+                    id="btn-add-{{ product.id }}" 
+                    onclick="addToCartFromCatalog({{ product.id }})">
+                В корзину
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+    
+</div> 
+
+<!-- Если товаров нет -->
+{% if not products %}
+<div class="empty-state">
+    <p>В этой категории пока нет товаров</p>
+</div>
+{% endif %}
+
+<!-- ... остальной код ... -->
+        
+        <div class="back-to-catalog">
+            <a href="{{ url_for('catalog') }}" class="btn-outline">← Вернуться к категориям</a>
+        </div>
+    </div>
+</section>
+
+<script>
+// Добавление из каталога
+function addToCartFromCatalog(productId) {
+    var btn = document.getElementById('btn-add-' + productId);
+    var qtyControl = document.getElementById('qty-control-' + productId);
+    var qtyValue = document.getElementById('qty-value-' + productId);
+    
+    if (!btn || !qtyControl || !qtyValue) {
+        console.error('Элементы не найдены:', productId);
+        return;
+    }
+    
+    var originalText = btn.innerHTML;
+    btn.innerHTML = 'Добавление...';
+    btn.disabled = true;
+    
+    fetch('/add_to_cart/' + productId, {
+        method: 'POST',
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: new URLSearchParams({'quantity': 1})
+    })
+    .then(function(response) {
+        if (response.status === 404) {
+            window.location.reload();
+            return null;
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data && data.success) {
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+            
+            var currentValue = parseInt(qtyValue.textContent) || 0;
+            qtyValue.textContent = currentValue + 1;
+            
+            if (typeof window.showFlashMessage === 'function') {
+                window.showFlashMessage('✓ Товар добавлен в корзину', 'success');
+            }
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        window.location.reload();
+    })
+    .finally(function() {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+// Изменение количества в каталоге
+function updateCartQuantity(productId, delta) {
+    var qtyValue = document.getElementById('qty-value-' + productId);
+    
+    if (!qtyValue) {
+        console.error('Элемент не найден:', productId);
+        return;
+    }
+    
+    fetch('/update_cart', {
+        method: 'POST',
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        credentials: 'same-origin',
+        body: new URLSearchParams({
+            'product_id': productId,
+            'action': delta > 0 ? 'increase' : 'decrease'
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Server error: ' + response.status);
+        return response.json();
+    })
+    .then(function(data) {
+        if (data && data.success) {
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+            
+            var currentValue = parseInt(qtyValue.textContent) || 0;
+            var newValue = currentValue + delta;
+            
+            // ← Просто обновляем число, без скрытия:
+            qtyValue.textContent = newValue < 1 ? 1 : newValue;
+        }
+    })
+    .catch(function(error) {
+        console.error('Ошибка:', error);
+        window.location.reload();
+    });
+}
+</script>
+{% endblock %}  {# ← БЛОК content ЗАКАНЧИВАЕТСЯ ЗДЕСЬ #}

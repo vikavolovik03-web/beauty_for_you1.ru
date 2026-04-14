@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Каталог - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+<section class="catalog-categories">
+    <div class="container">
+        <div class="catalog-title-wrapper">
+            <h1 class="catalog-title">Каталог</h1>
+        </div>
+        
+        <div class="categories-grid">
+            <!-- Лицо -->
+            <div class="category-item category-large">
+                <a href="{{ url_for('catalog_category', category_name='lico') }}" class="category-link">
+                    <div class="category-image" style="background-image: url('{{ url_for('static', filename='images/categories/face.jpg') }}');">
+                        <div class="category-overlay">
+                            <span class="category-label">Лицо</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Волосы -->
+            <div class="category-item category-medium">
+                <a href="{{ url_for('catalog_category', category_name='volosy') }}" class="category-link">
+                    <div class="category-image" style="background-image: url('{{ url_for('static', filename='images/categories/hair.jpg') }}');">
+                        <div class="category-overlay">
+                            <span class="category-label">Волосы</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Тело -->
+            <div class="category-item category-small">
+                <a href="{{ url_for('catalog_category', category_name='telo') }}" class="category-link">
+                    <div class="category-image" style="background-image: url('{{ url_for('static', filename='images/categories/body.jpg') }}');">
+                        <div class="category-overlay">
+                            <span class="category-label">Тело</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Макияж -->
+            <div class="category-item category-small">
+                <a href="{{ url_for('catalog_category', category_name='makiyazh') }}" class="category-link">
+                    <div class="category-image" style="background-image: url('{{ url_for('static', filename='images/categories/makeup.jpg') }}');">
+                        <div class="category-overlay">
+                            <span class="category-label">Макияж</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

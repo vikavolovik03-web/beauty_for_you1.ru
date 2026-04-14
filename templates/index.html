@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Главная - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+<!-- Герой-секция -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>
+                Твой проводник
+                <span>в мир идеальной кожи</span>
+            </h1>
+            <p>Профессиональная косметика для ухода за лицом, телом и волосами</p>
+            <a href="{{ url_for('catalog') }}" class="cta-button">К покупкам</a>
+        </div>
+    </div>
+</section>
+
+<!-- Популярные товары -->
+{% if products and products|length > 0 %}
+<section class="products-section">
+    <div class="container">
+        <h2 class="section-title">
+            
+            Популярные товары
+            
+        </h2>
+        
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.image and product.image != 'default.jpg' %}
+                        <img src="{{ url_for('static', filename='images/products/' + product.image) }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="image-placeholder">{{ product.brand[0] if product.brand else 'P' }}</div>
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <span class="product-brand">{{ product.brand }}</span>
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <div class="product-price">
+                        <span class="current-price">{{ product.price }} ₽</span>
+                        {% if product.old_price %}
+                        <span class="old-price">{{ product.old_price }} ₽</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn-primary btn-full">В корзину</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="catalog-link">
+            <a href="{{ url_for('catalog') }}" class="btn-catalog">
+                <span class="catalog-icon"></span>
+                Смотреть весь каталог
+                <span class="catalog-arrow">→</span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Первый заказ со скидкой 10%</h2>
+        <p>Зарегистрируйтесь сейчас и получите промокод на первую покупку</p>
+        <a href="{{ url_for('register') }}" class="btn-outline btn-large">Зарегистрироваться</a>
+    </div>
+</section>
+{% endblock %}

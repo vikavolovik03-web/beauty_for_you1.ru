@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Оформление заказа - BEAUTY FOR YOU{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="container">
+        
+        <div class="checkout-header">
+            <h1 class="checkout-title">Оформление заказа</h1>
+        </div>
+        
+        <form id="checkout-form" method="POST" action="{{ url_for('checkout') }}">
+            <div class="checkout-grid">
+                
+                <!-- Левая часть: Форма -->
+                <div class="checkout-form-section">
+                    
+                    <!-- Контакты -->
+                    <div class="form-card">
+                        <h3 class="form-card-title">Контакты</h3>
+                        <div class="form-group">
+                            <label>Имя и фамилия *</label>
+                            <input type="text" name="customer_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон *</label>
+                            <input type="tel" name="customer_phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="customer_email">
+                        </div>
+                    </div>
+                    
+                    <!-- Доставка -->
+                    <div class="form-card">
+                        <h3 class="form-card-title">Доставка</h3>
+                        <div class="form-group">
+                            <label>Адрес доставки *</label>
+                            <textarea name="delivery_address" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Способ доставки</label>
+                            <select name="delivery_method">
+                                <option value="courier">Курьер (300 ₽)</option>
+                                <option value="pickup">Самовывоз (0 ₽)</option>
+                                <option value="post">Почта (200 ₽)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Оплата -->
+                    <div class="form-card">
+                        <h3 class="form-card-title">Оплата</h3>
+                        <div class="payment-options">
+                            <label>
+                                <input type="radio" name="payment_method" value="cash" checked>
+                                Наличные
+                            </label>
+                            <label>
+                                <input type="radio" name="payment_method" value="card">
+                                Карта
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопка отправки -->
+                    <button type="submit" class="btn-checkout-submit">
+                        Подтвердить заказ
+                    </button>
+                </div>
+                
+                <!-- Правая часть: Сводка -->
+                <div class="checkout-summary-section">
+                    <div class="order-summary-card">
+                        <h3 class="summary-title">Ваш заказ</h3>
+                        <!-- Товары -->
+                        <div class="summary-items">
+                            {% for item in cart_items %}
+                            <div class="summary-item">
+                                <div class="summary-item-info">
+                                    <h4>{{ item.product.name }}</h4>
+                                    <p>{{ item.quantity }} шт. × {{ item.product.price }} ₽</p>
+                                </div>
+                                <div class="summary-item-total">{{ item.product.price * item.quantity }} ₽</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="summary-total">
+                            <span>Итого:</span>
+                            <span class="total-amount">{{ total }} ₽</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+        
+    </div>
+</section>
+
+<script>
+function closeSuccessModal() {
+    document.getElementById('order-success').classList.remove('show');
+}
+
+document.getElementById('order-success').addEventListener('click', function(e) {
+    if (e.target === this) closeSuccessModal();
+});
+
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var form = this;
+    var formData = new FormData(form);
+    var submitBtn = form.querySelector('.btn-checkout-submit');
+    var originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Оформление...';
+    
+    fetch('{{ url_for("checkout") }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            document.getElementById('order-id').textContent = '#' + data.order_id;
+            document.getElementById('order-success').classList.add('show');
+            form.reset();
+            
+            // Обновить счетчик корзины
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+        } else {
+            alert('Ошибка: ' + (data.error || 'Не удалось оформить заказ'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    })
+    .catch(function(error) {
+        alert('Произошла ошибка');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// Обновление стоимости доставки
+document.querySelectorAll('input[name="delivery_method"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        var cost = this.value === 'courier' ? 300 : (this.value === 'post' ? 200 : 0);
+        document.querySelector('.delivery-cost').textContent = cost > 0 ? cost + ' ₽' : 'Бесплатно';
+        document.querySelector('.total-amount').textContent = ({{ total }} + cost) + ' ₽';
+    });
+});
+</script>
+{% endblock %}

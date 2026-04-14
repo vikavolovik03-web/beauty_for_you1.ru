@@ -1,0 +1,98 @@
+{% extends 'admin/base.html' %}
+{% block title %}Дашборд{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+
+{% block content %}
+<!-- Статистика -->
+<div class="admin-stats-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <span class="stat-value">{{ total_products }}</span>
+            <span class="stat-label">Товаров</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <span class="stat-value">{{ total_users }}</span>
+            <span class="stat-label">Пользователей</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <span class="stat-value">{{ total_orders }}</span>
+            <span class="stat-label">Заказов</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-info">
+            <span class="stat-value">{{ "%.2f"|format(total_revenue) }} ₽</span>
+            <span class="stat-label">Выручка</span>
+        </div>
+    </div>
+</div>
+
+<!-- Последние заказы и товары -->
+<div class="admin-dashboard-grid">
+    <!-- Последние заказы -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <a href="{{ url_for('admin_orders') }}" class="btn-link">Все заказы →</a>
+        </div>
+        <div class="admin-card-body">
+            {% if recent_orders %}
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.recipient_name }}</td>
+                            <td>{{ order.total_amount }} ₽</td>
+                            <td>
+                                <span class="status-badge status-{{ order.status }}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty-state">Заказов пока нет</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Товары заканчиваются -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2>Товары заканчиваются</h2>
+            <a href="{{ url_for('admin_products') }}" class="btn-link">Все товары →</a>
+        </div>
+        <div class="admin-card-body">
+            {% if low_stock %}
+                <ul class="admin-list">
+                    {% for product in low_stock %}
+                    <li class="admin-list-item">
+                        <span class="product-name">{{ product.name }}</span>
+                        <span class="product-price">{{ product.price }} ₽</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">Все товары в наличии</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'admin/base.html' %}
+{% block title %}Пользователи{% endblock %}
+{% block page_title %}Пользователи{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-body">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Email</th>
+                    <th>Телефон</th>
+                    <th>Роль</th>
+                    <th>Дата регистрации</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone or '—' }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="status-badge status-warning">Админ</span>
+                        {% else %}
+                            <span class="status-badge status-info">Клиент</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

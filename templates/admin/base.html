@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ-панель{% endblock %}BEAUTY FOR YOU</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body class="admin-body">
+    <!-- Боковая панель -->
+    <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <span class="logo-text">BEAUTY FOR YOU</span>
+        </div>
+        
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin') }}" class="admin-nav-link {% if request.endpoint == 'admin' %}active{% endif %}">
+                <span>Дашборд</span>
+            </a>
+            <a href="{{ url_for('admin_products') }}" class="admin-nav-link {% if 'product' in request.endpoint %}active{% endif %}">
+                <span>Товары</span>
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="admin-nav-link {% if 'order' in request.endpoint %}active{% endif %}">
+                <span>Заказы</span>
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="admin-nav-link {% if 'user' in request.endpoint %}active{% endif %}">
+                <span>Пользователи</span>
+            </a>
+            <a href="{{ url_for('index') }}" class="admin-nav-link" target="_blank">
+                <span>На сайт</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="admin-nav-link logout">
+                <span>Выйти</span>
+            </a>
+        </nav>
+        
+        <div class="admin-user-info">
+            <div class="user-details">
+                <span class="user-name">{{ current_user.username }}</span>
+                <span class="user-role">Администратор</span>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Основной контент -->
+    <main class="admin-main">
+        <!-- Верхняя панель -->
+        <header class="admin-header">
+            <h1 class="admin-title">{% block page_title %}Админ-панель{% endblock %}</h1>
+            <div class="admin-header-actions">
+                <a href="{{ url_for('index') }}" class="btn-site" target="_blank">🌐 Открыть сайт</a>
+            </div>
+        </header>
+        
+        <!-- Уведомления -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="admin-flash">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                            <button onclick="this.parentElement.remove()">✕</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Контент страницы -->
+        <div class="admin-content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</body>
+</html>
